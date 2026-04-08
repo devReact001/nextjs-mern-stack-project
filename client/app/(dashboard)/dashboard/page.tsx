@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useSearch } from "@/context/SearchContext";
 import API from "@/lib/api";
 
 interface Project {
@@ -12,26 +13,58 @@ interface Project {
 }
 
 export default function Dashboard() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  // ✨ Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
+  const { search, setSearch } = useSearch();
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+
+  // 🔁 debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // 🔐 auth + initial fetch
   useEffect(() => {
     if (!loading && !user) router.push("/login");
     if (user) fetchProjects();
   }, [user, loading]);
 
+  // 🔍 fetch on search change
+  useEffect(() => {
+    if (user) fetchProjects();
+  }, [debouncedSearch, page]);
+
   const fetchProjects = async () => {
-    const res = await API.get("/projects");
-    setProjects(res.data);
+    try {
+      setLoadingProjects(true);
+
+      const res = await API.get(
+        `/projects?search=${debouncedSearch}&page=${page}&limit=3`,
+      );
+
+      setProjects(res.data.data);
+      setPages(res.data.pages);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingProjects(false);
+    }
   };
 
   const createProject = async (e: React.FormEvent) => {
@@ -49,17 +82,13 @@ export default function Dashboard() {
     setProjects(projects.filter((p) => p._id !== id));
   };
 
-  // ✨ Update Project
   const updateProject = async (id: string) => {
     const res = await API.put(`/projects/${id}`, {
       name: editName,
       description: editDescription,
     });
 
-    setProjects(
-      projects.map((p) => (p._id === id ? res.data : p))
-    );
-
+    setProjects(projects.map((p) => (p._id === id ? res.data : p)));
     setEditingId(null);
   };
 
@@ -67,25 +96,20 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
-
-      {/* Header Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center transition-colors duration-300">
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-          Project Dashboard
-        </h1>
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h1 className="text-xl font-semibold">Project Dashboard</h1>
       </div>
 
       {/* Create Project */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
-        <h2 className="font-semibold mb-4 text-gray-800 dark:text-gray-100">
-          Create New Project
-        </h2>
+      <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <h2 className="font-semibold mb-4">Create New Project</h2>
 
         <form className="grid md:grid-cols-3 gap-4" onSubmit={createProject}>
           <input
             type="text"
             placeholder="Project Name"
-            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-gray-400"
+            className="border rounded-lg px-4 py-2"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -93,12 +117,12 @@ export default function Dashboard() {
           <input
             type="text"
             placeholder="Description"
-            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-gray-400"
+            className="border rounded-lg px-4 py-2"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <button className="bg-black text-white dark:bg-white dark:text-black rounded-lg px-4 py-2 transition hover:opacity-90">
+          <button className="bg-black text-white rounded-lg px-4 py-2">
             Add Project
           </button>
         </form>
@@ -106,33 +130,44 @@ export default function Dashboard() {
 
       {/* Projects */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
-          Your Projects
-        </h2>
+        <h2 className="text-lg font-semibold mb-2">Your Projects</h2>
 
+        {/* 🔍 Search */}
+        <input
+          type="text"
+          placeholder="Search projects..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="border-2 border-black px-4 py-2 rounded-lg w-64 bg-white text-black mb-4"
+        />
+
+        {/* Loading */}
+        {loadingProjects && <p>Loading...</p>}
+
+        {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
             <div
               key={project._id}
               onClick={() => {
-                if (!editingId)
-                  router.push(`/dashboard/${project._id}`);
+                if (!editingId) router.push(`/dashboard/${project._id}`);
               }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+              className="bg-white rounded-2xl p-6 shadow-sm border hover:shadow-md transition cursor-pointer"
             >
               {editingId === project._id ? (
                 <>
                   <input
-                    className="w-full mb-2 p-2 rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                    className="w-full mb-2 p-2 rounded bg-gray-100"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
                   <input
-                    className="w-full mb-3 p-2 rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                    className="w-full mb-3 p-2 rounded bg-gray-100"
                     value={editDescription}
-                    onChange={(e) =>
-                      setEditDescription(e.target.value)
-                    }
+                    onChange={(e) => setEditDescription(e.target.value)}
                   />
 
                   <div className="flex gap-3">
@@ -159,10 +194,23 @@ export default function Dashboard() {
               ) : (
                 <div className="flex justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">
-                      {project.name}
+                    {/* 🔥 highlight */}
+                    <h3 className="font-semibold">
+                      {project.name
+                        .split(new RegExp(`(${debouncedSearch})`, "gi"))
+                        .map((part, i) =>
+                          part.toLowerCase() ===
+                          debouncedSearch.toLowerCase() ? (
+                            <span key={i} className="bg-yellow-200">
+                              {part}
+                            </span>
+                          ) : (
+                            part
+                          ),
+                        )}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+
+                    <p className="text-sm text-gray-500 mt-2">
                       {project.description}
                     </p>
 
@@ -171,9 +219,7 @@ export default function Dashboard() {
                         e.stopPropagation();
                         setEditingId(project._id);
                         setEditName(project.name);
-                        setEditDescription(
-                          project.description || ""
-                        );
+                        setEditDescription(project.description || "");
                       }}
                       className="text-blue-500 mt-3 text-sm"
                     >
@@ -186,7 +232,7 @@ export default function Dashboard() {
                       e.stopPropagation();
                       deleteProject(project._id);
                     }}
-                    className="text-red-500 hover:text-red-700 transition"
+                    className="text-red-500"
                   >
                     Delete
                   </button>
@@ -196,11 +242,31 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {projects.length === 0 && (
-          <p className="text-gray-500 dark:text-gray-400 mt-6">
-            No projects yet.
-          </p>
+        {/* Empty */}
+        {projects.length === 0 && !loadingProjects && (
+          <p className="text-gray-500 mt-6">No matching projects found</p>
         )}
+      </div>
+      <div className="flex justify-center items-center gap-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <span className="text-sm">
+          Page {page} of {pages}
+        </span>
+
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, pages))}
+          disabled={page === pages}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

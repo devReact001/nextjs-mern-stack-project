@@ -1,84 +1,100 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import API from "@/lib/api";
-
-interface Project {
-  _id: string;
-  name: string;
-}
+import { useSearch } from "@/context/SearchContext";
 
 export default function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { search } = useSearch();
+
+  const [projects, setProjects] = useState([]);
+
+ const fetchProjects = async () => {
+  try {
+    const res = await API.get(`/projects?search=${search}&limit=100`);
+    setProjects(res.data.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   useEffect(() => {
     fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
-    try {
-      const res = await API.get("/projects");
-      setProjects(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const isActive = (path: string) =>
-    pathname === path
-      ? "bg-gray-200 dark:bg-gray-800 text-black dark:text-white"
-      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900";
+  }, [search]);
 
   return (
-    <div className="h-full flex flex-col p-6">
-      {/* Logo */}
+    <div className="h-full flex flex-col p-4">
 
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🚀</span>
-        <span className="text-lg font-semibold text-gray-900 dark:text-white transition">
-          ProjectApp
-        </span>
-      </div>
-      {/* Dashboard Link */}
-      <nav className="space-y-2 mb-8">
-        <Link
-          href="/dashboard"
-          className={`block px-4 py-2 rounded-lg transition ${isActive(
-            "/dashboard",
-          )}`}
+      {/* 🔥 NAVIGATION */}
+      <div className="mb-6">
+        <p className="text-xs text-gray-400 uppercase mb-2">
+          Navigation
+        </p>
+
+        <div
+          onClick={() => router.push("/dashboard")}
+          className={`p-3 rounded-lg cursor-pointer transition
+            ${
+              pathname === "/dashboard"
+                ? "bg-black text-white"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }
+          `}
         >
           Dashboard
-        </Link>
-      </nav>
+        </div>
+      </div>
 
-      {/* Projects */}
-      <div>
-        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+      {/* 🔥 PROJECTS SECTION */}
+      <div className="flex-1 flex flex-col">
+
+        <p className="text-xs text-gray-400 uppercase mb-2">
           Projects
         </p>
 
-        <div className="space-y-2">
-          {projects.map((project) => (
-            <Link
-              key={project._id}
-              href={`/dashboard/${project._id}`}
-              className={`block px-4 py-2 rounded-lg text-sm transition ${
-                pathname === `/dashboard/${project._id}`
-                  ? "bg-gray-200 dark:bg-gray-800 text-black dark:text-white"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900"
-              }`}
-            >
-              {project.name}
-            </Link>
-          ))}
+        <p className="text-sm text-gray-500 mb-3">
+          {projects.length} projects
+        </p>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto space-y-2">
 
           {projects.length === 0 && (
-            <p className="text-xs text-gray-400">No projects</p>
+            <p className="text-sm text-gray-400">
+              No projects found
+            </p>
           )}
+
+          {projects.map((project: any) => {
+            const isActive = pathname.includes(project._id);
+
+            return (
+              <div
+                key={project._id}
+                onClick={() => router.push(`/dashboard/${project._id}`)}
+                className={`p-3 rounded-lg cursor-pointer transition
+                  ${
+                    isActive
+                      ? "bg-black text-white"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+                  }
+                `}
+              >
+                <p className="font-medium truncate">
+                  {project.name}
+                </p>
+
+                <p className="text-xs opacity-70 truncate">
+                  {project.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
+
       </div>
     </div>
   );

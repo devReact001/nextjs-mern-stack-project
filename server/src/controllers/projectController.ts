@@ -23,19 +23,40 @@ export const createProject = asyncHandler(
     });
 
     res.status(201).json(project);
-  }
+  },
 );
 
 // Get All Projects
-export const getProjects = asyncHandler(
-  async (req: AuthRequest, res: Response) => {
-    const projects = await Project.find({ user: req.user._id }).sort({
-      createdAt: -1,
-    });
+export const getProjects = async (req, res) => {
+  try {
+    const { search = "", page = 1, limit = 3 } = req.query;
 
-    res.json(projects);
+    const query = {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ],
+    };
+
+    const skip = (page - 1) * limit;
+
+    const projects = await Project.find(query)
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await Project.countDocuments(query);
+
+    res.json({
+      data: projects,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-);
+};
 
 // Update Project
 export const updateProject = asyncHandler(
@@ -55,7 +76,7 @@ export const updateProject = asyncHandler(
 
     const updated = await project.save();
     res.json(updated);
-  }
+  },
 );
 
 // Delete Project
@@ -72,5 +93,5 @@ export const deleteProject = asyncHandler(
     }
 
     res.json({ message: "Project deleted" });
-  }
+  },
 );
