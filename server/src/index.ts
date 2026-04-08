@@ -15,7 +15,13 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://nextjs-mern-stack-project.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
