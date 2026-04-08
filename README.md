@@ -6,7 +6,7 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 
 ## 🌐 Live Demo
 
-🔗 https://your-live-app.vercel.app
+🔗 https://nextjs-mern-stack-project.vercel.app
 
 ---
 
