@@ -9,7 +9,7 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 | Platform | Frontend | Backend |
 |----------|----------|---------|
 | ☁️ **GCP Cloud Run** | https://mern-frontend-482064592313.asia-south1.run.app | https://mern-backend-482064592313.asia-south1.run.app |
-| ▲ **Vercel** | https://nextjs-mern-stack-project.vercel.app | Render |
+| ▲ **Vercel** | https://nextjs-mern-stack-project.vercel.app | https://nextjs-mern-stack-project.onrender.com |
 
 ---
 
