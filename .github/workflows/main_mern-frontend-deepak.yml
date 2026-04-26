@@ -1,0 +1,35 @@
+name: Build and deploy Next.js to Azure Web App - mern-frontend-deepak
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install and build
+        working-directory: client
+        env:
+          NEXT_PUBLIC_API_URL: https://mern-backend-deepak.azurewebsites.net
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: mern-frontend-deepak
+          slot-name: production
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          package: client
