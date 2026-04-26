@@ -31,5 +31,5 @@ jobs:
         with:
           app-name: mern-frontend-deepak
           slot-name: production
-          publish-profile: ${{ secrets.AzureAppService_PublishProfile_dfafb085779f4b0aa9ac30763c6e1ffd }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: client
