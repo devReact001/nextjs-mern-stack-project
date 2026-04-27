@@ -7,10 +7,32 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 ## 🌐 Live Deployments
 
 | Platform | Frontend | Backend |
-|----------|----------|---------|
+|----------|----------|---------| 
 | ☁️ **Azure App Service** | https://mern-frontend-deepak.azurewebsites.net | https://mern-backend-deepak.azurewebsites.net |
 | ☁️ **GCP Cloud Run** | https://mern-frontend-482064592313.asia-south1.run.app | https://mern-backend-482064592313.asia-south1.run.app |
 | ▲ **Vercel** | https://nextjs-mern-stack-project.vercel.app | https://nextjs-mern-stack-project.onrender.com |
+
+---
+
+## 📸 Screenshots
+
+### 🔐 Login Page
+![Login Page](screenshots/Login.png)
+
+### 📝 Register Page
+![Register Page](screenshots/Register.png)
+
+### 📋 Dashboard — Light Mode
+![Dashboard Light](screenshots/DashboardLight.png)
+
+### 🌙 Dashboard — Dark Mode
+![Dashboard Dark](screenshots/DashboardDark.png)
+
+### ✅ Task Board — Light Mode
+![Tasks Light](screenshots/TasksLight.png)
+
+### 🌙 Task Board — Dark Mode
+![Tasks Dark](screenshots/TasksDark.png)
 
 ---
 
@@ -23,6 +45,8 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 - 📄 Paginated project list
 - 🌙 Dark / Light mode toggle
 - 🎨 Responsive UI with Tailwind CSS
+- 📊 Per-project task count summary (Todo / In Progress / Done)
+- 🔄 Sidebar auto-updates on project create/delete
 - ☁️ Deployed on Azure App Service + GCP Cloud Run + Vercel
 
 ---
@@ -35,7 +59,7 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 | Backend | Node.js, Express.js, TypeScript |
 | Database | MongoDB Atlas (Mongoose ODM) |
 | Auth | JWT (JSON Web Tokens) |
-| State | React Query (@tanstack/react-query) |
+| State | React Context API |
 | Deployment | Azure App Service + GCP Cloud Run + Vercel |
 | CI/CD | GCP Cloud Build + Artifact Registry |
 | Containers | Docker, Docker Hub |
@@ -106,7 +130,7 @@ Developer pushes to GitHub
 ```
 ┌─────────────────────────────────┐
 │        Next.js Frontend         │
-│  React 19 + Tailwind + R-Query  │
+│  React 19 + Tailwind CSS        │
 │  Azure App Service / GCP / Vercel│
 └─────────────┬───────────────────┘
               │ REST API (JWT)
@@ -163,6 +187,7 @@ Protected routes accessible
 | POST | `/api/auth/login` | Login, returns JWT |
 | GET | `/api/projects` | List projects (paginated + search) |
 | POST | `/api/projects` | Create project |
+| GET | `/api/projects/:id` | Get single project by ID |
 | PUT | `/api/projects/:id` | Update project |
 | DELETE | `/api/projects/:id` | Delete project |
 | GET | `/api/tasks/:projectId` | Get tasks for project |
@@ -248,9 +273,11 @@ gcloud run deploy mern-frontend \
 - 🔄 Real-time updates using Socket.io
 - 🔍 Advanced search and filtering
 - 👥 Role-based authentication (RBAC)
-- 🌙 Persistent dark mode
+- 🌙 Persistent dark mode (localStorage)
 - 📁 File upload functionality
 - 📊 Project analytics dashboard
+- 🔔 Task deadline notifications
+- 🏷️ Task labels and priority levels
 
 ---
 
