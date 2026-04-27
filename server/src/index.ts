@@ -20,6 +20,7 @@ app.use(cors({
     "http://localhost:3000",
     "https://nextjs-mern-stack-project.vercel.app",
     "https://mern-frontend-482064592313.asia-south1.run.app",
+    "https://mern-frontend-deepak.azurewebsites.net",
   ],
   credentials: true
 }));
