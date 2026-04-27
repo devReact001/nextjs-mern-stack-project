@@ -6,6 +6,11 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 
 ## 🌐 Live Deployments
 
+Login credentials demo user
+
+Username: deepak@test.com
+Password: 123456
+
 | Platform | Frontend | Backend |
 |----------|----------|---------| 
 | ☁️ **Azure App Service** | https://mern-frontend-deepak.azurewebsites.net | https://mern-backend-deepak.azurewebsites.net |
