@@ -8,6 +8,7 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 
 | Platform | Frontend | Backend |
 |----------|----------|---------|
+| ☁️ **Azure App Service** | https://mern-frontend-deepak.azurewebsites.net | https://mern-backend-deepak.azurewebsites.net |
 | ☁️ **GCP Cloud Run** | https://mern-frontend-482064592313.asia-south1.run.app | https://mern-backend-482064592313.asia-south1.run.app |
 | ▲ **Vercel** | https://nextjs-mern-stack-project.vercel.app | https://nextjs-mern-stack-project.onrender.com |
 
@@ -22,7 +23,7 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 - 📄 Paginated project list
 - 🌙 Dark / Light mode toggle
 - 🎨 Responsive UI with Tailwind CSS
-- ☁️ Deployed on GCP Cloud Run + Vercel
+- ☁️ Deployed on Azure App Service + GCP Cloud Run + Vercel
 
 ---
 
@@ -35,8 +36,38 @@ A full-stack web application built using **Next.js, Node.js, Express, and MongoD
 | Database | MongoDB Atlas (Mongoose ODM) |
 | Auth | JWT (JSON Web Tokens) |
 | State | React Query (@tanstack/react-query) |
-| Deployment | GCP Cloud Run + Vercel (frontend), Render (backend) |
+| Deployment | Azure App Service + GCP Cloud Run + Vercel |
 | CI/CD | GCP Cloud Build + Artifact Registry |
+| Containers | Docker, Docker Hub |
+
+---
+
+## ☁️ Azure App Service Architecture
+
+```
+Developer pushes to GitHub
+         ↓
+  Docker image built locally
+         ↓
+  Image pushed to Docker Hub
+         ↓
+┌─────────────────────────────────────┐
+│        Azure App Service            │
+│                                     │
+│  mern-frontend-deepak  |  mern-backend-deepak  │
+│  (Next.js Docker)      |  (Node.js Zip Deploy) │
+│  South India           |  South India           │
+└─────────────────────────────────────┘
+         ↓
+   MongoDB Atlas (Cloud DB)
+   Env vars via App Service Settings
+```
+
+**Azure Services Used:**
+- **App Service** — container and Node.js hosting (B1 Linux plan)
+- **App Service Plan** — `mern-plan` (B1, South India region)
+- **Docker Hub** — stores frontend Docker image
+- **Kudu/OneDeploy** — zip deploy for backend
 
 ---
 
@@ -76,14 +107,14 @@ Developer pushes to GitHub
 ┌─────────────────────────────────┐
 │        Next.js Frontend         │
 │  React 19 + Tailwind + R-Query  │
-│     GCP Cloud Run / Vercel      │
+│  Azure App Service / GCP / Vercel│
 └─────────────┬───────────────────┘
               │ REST API (JWT)
               ▼
 ┌─────────────────────────────────┐
 │   Node.js + Express API         │
 │   TypeScript + JWT Middleware   │
-│      GCP Cloud Run / Render     │
+│   Azure App Service / GCP Run   │
 └─────────────┬───────────────────┘
               │ Mongoose ODM
               ▼
@@ -167,24 +198,44 @@ npm run dev
 
 ## 🚀 Deployment
 
-### GCP Cloud Run (Production)
+### Azure App Service
 
 ```bash
-# Build and push backend
+# Backend — zip deploy
+zip -r app.zip server/
+az webapp deploy \
+  --name mern-backend-deepak \
+  --resource-group mern-stack-rg \
+  --src-path app.zip \
+  --type zip
+
+# Frontend — Docker Hub
+docker build \
+  --build-arg NEXT_PUBLIC_API_URL=https://mern-backend-deepak.azurewebsites.net \
+  -t wearedevteam/mern-frontend:latest ./client
+docker push wearedevteam/mern-frontend:latest
+
+az webapp config container set \
+  --name mern-frontend-deepak \
+  --resource-group mern-stack-rg \
+  --container-image-name wearedevteam/mern-frontend:latest \
+  --container-registry-url https://index.docker.io
+```
+
+### GCP Cloud Run
+
+```bash
+# Build and deploy backend
 gcloud builds submit ./server \
   --tag asia-south1-docker.pkg.dev/PROJECT_ID/mern-stack/mern-backend:latest
-
-# Deploy backend
 gcloud run deploy mern-backend \
   --image=asia-south1-docker.pkg.dev/PROJECT_ID/mern-stack/mern-backend:latest \
   --region=asia-south1 \
   --set-secrets=MONGO_URI=MONGO_URI:latest,JWT_SECRET=JWT_SECRET:latest
 
-# Build and push frontend
+# Build and deploy frontend
 gcloud builds submit ./client \
   --tag asia-south1-docker.pkg.dev/PROJECT_ID/mern-stack/mern-frontend:latest
-
-# Deploy frontend
 gcloud run deploy mern-frontend \
   --image=asia-south1-docker.pkg.dev/PROJECT_ID/mern-stack/mern-frontend:latest \
   --region=asia-south1
@@ -215,185 +266,6 @@ gcloud run deploy mern-frontend \
 
 ⭐ If you found this project useful, consider giving it a star!
 
-**[GCP Live](https://mern-frontend-482064592313.asia-south1.run.app)** · **[Vercel Live](https://nextjs-mern-stack-project.vercel.app)** · **[GitHub](https://github.com/devReact001/nextjs-mern-stack-project)**
-
-</div>
-
-
----
-
-## ✨ Features
-
-- 🔐 Secure authentication (JWT-based)
-- 📊 Full CRUD functionality (Create, Read, Update, Delete)
-- ⚡ RESTful API integration
-- 🎨 Responsive UI with Tailwind CSS
-- 🌍 Deployed on Vercel (frontend) and Render (backend)
-- 🧾 Clean and modular code structure
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js, React.js, Tailwind CSS |
-| Backend | Node.js, Express.js |
-| Database | MongoDB Atlas (Mongoose ODM) |
-| Auth | JWT (JSON Web Tokens) |
-| Deployment | Vercel (frontend) + Render (backend) |
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────┐
-│        Next.js Frontend         │
-│     (React + Tailwind CSS)      │
-│        Vercel Hosted            │
-└─────────────┬───────────────────┘
-              │ REST API calls
-              ▼
-┌─────────────────────────────────┐
-│     Node.js + Express API       │
-│       JWT Authentication        │
-│         Render Hosted           │
-└─────────────┬───────────────────┘
-              │ Mongoose ODM
-              ▼
-┌─────────────────────────────────┐
-│         MongoDB Atlas           │
-│      (Cloud Database)           │
-└─────────────────────────────────┘
-```
-
----
-
-## 🔐 Authentication Flow
-
-```
-User Login → POST /api/auth/login
-      ↓
-JWT Token Generated & Returned
-      ↓
-Token stored in localStorage
-      ↓
-Attached to all API requests via headers
-      ↓
-Express JWT Middleware validates token
-      ↓
-Protected routes accessible
-```
-
----
-
-## 🔗 API Overview
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | User login, returns JWT |
-| POST | `/api/auth/register` | User registration |
-| GET | `/api/...` | Fetch data (protected) |
-| POST | `/api/...` | Create data (protected) |
-| PUT | `/api/...` | Update data (protected) |
-| DELETE | `/api/...` | Delete data (protected) |
-
----
-
-## ⚙️ Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/devReact001/nextjs-mern-stack-project.git
-```
-
-### 2. Install dependencies
-
-**Frontend:**
-```bash
-cd client
-npm install
-```
-
-**Backend:**
-```bash
-cd server
-npm install
-```
-
-### 3. Setup Environment Variables
-
-Create a `.env` file in the server folder:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-PORT=5000
-```
-
-Create a `.env.local` file in the client folder:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-### 4. Run the application
-
-**Backend:**
-```bash
-cd server
-npm run dev
-```
-
-**Frontend:**
-```bash
-cd client
-npm run dev
-# Open http://localhost:3000
-```
-
----
-
-## 🚀 Deployment
-
-| Service | Platform | URL |
-|---------|----------|-----|
-| Frontend | Vercel | nextjs-mern-stack-project.vercel.app |
-| Backend | Render | Auto-deployed from GitHub |
-| Database | MongoDB Atlas | Cloud hosted |
-
----
-
-## 🔮 Future Improvements
-
-- 🔄 Real-time updates using Socket.io
-- 🔍 Advanced search and filtering
-- 👥 Role-based authentication (RBAC)
-- 🌙 Dark mode support
-- 📁 File upload functionality
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to fork the repo and submit a pull request.
-
----
-
-## 📬 Contact
-
-- 🐙 GitHub: [github.com/devReact001](https://github.com/devReact001)
-- 💼 LinkedIn: [linkedin.com/in/deepak-prasad](https://linkedin.com/in/deepak-prasad)
-- 🌐 Portfolio: [sql-nextjs.vercel.app](https://sql-nextjs.vercel.app)
-
----
-
-<div align="center">
-
-⭐ If you found this project useful, consider giving it a star!
-
-**[Live Demo](https://nextjs-mern-stack-project.vercel.app)** · **[GitHub](https://github.com/devReact001/nextjs-mern-stack-project)**
+**[Azure Live](https://mern-frontend-deepak.azurewebsites.net)** · **[GCP Live](https://mern-frontend-482064592313.asia-south1.run.app)** · **[Vercel Live](https://nextjs-mern-stack-project.vercel.app)** · **[GitHub](https://github.com/devReact001/nextjs-mern-stack-project)**
 
 </div>
