@@ -7,7 +7,7 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-// Create Task
+// Create Task — any logged-in user can create task in any project
 export const createTask = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { title } = req.body;
@@ -18,10 +18,7 @@ export const createTask = asyncHandler(
       throw new Error("Task title is required");
     }
 
-    const project = await Project.findOne({
-      _id: projectId,
-      user: req.user._id,
-    });
+    const project = await Project.findById(projectId);
 
     if (!project) {
       res.status(404);
@@ -38,27 +35,23 @@ export const createTask = asyncHandler(
   }
 );
 
-// Get Tasks
+// Get Tasks — return all tasks for a project (no user filter)
 export const getTasks = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { projectId } = req.params;
 
     const tasks = await Task.find({
       project: projectId,
-      user: req.user._id,
     }).sort({ createdAt: -1 });
 
     res.json(tasks);
   }
 );
 
-// Update Task
+// Update Task — any logged-in user can update
 export const updateTask = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    const task = await Task.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       res.status(404);
@@ -73,13 +66,10 @@ export const updateTask = asyncHandler(
   }
 );
 
-// Delete Task
+// Delete Task — any logged-in user can delete
 export const deleteTask = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    const task = await Task.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id,
-    });
+    const task = await Task.findByIdAndDelete(req.params.id);
 
     if (!task) {
       res.status(404);
