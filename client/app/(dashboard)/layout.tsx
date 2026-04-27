@@ -10,28 +10,35 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SearchProvider> {/* ✅ ONE shared context */}
-      <div className="flex h-screen bg-gray-100 dark:bg-black">
+    <SearchProvider>
+      <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-950">
 
-        {/* Sidebar */}
-        <aside className="w-64 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
+        {/* Sidebar — fixed, scrolls internally */}
+        <aside className="w-64 shrink-0 flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-hidden">
           <Sidebar />
         </aside>
 
-        {/* Main */}
-        <div className="flex-1 flex flex-col">
-          
+        {/* Right panel */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
           {/* Header */}
-          <header className="h-16 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+          <header className="h-16 shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
             <Header />
           </header>
 
-          {/* Content */}
-          <main className="flex-1 overflow-y-auto bg-gray-100 dark:bg-black p-10">
+          {/* Scrollable content */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-950 p-8
+            [&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-thumb]:bg-gray-300
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            dark:[&::-webkit-scrollbar-thumb]:bg-gray-700
+          ">
             <div className="max-w-6xl mx-auto">
               {children}
             </div>
           </main>
+
         </div>
       </div>
     </SearchProvider>

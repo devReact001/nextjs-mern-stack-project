@@ -58,6 +58,20 @@ export const getProjects = async (req: Request, res: Response) => {
   }
 };
 
+// Get Single Project by ID
+export const getProjectById = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      res.status(404);
+      throw new Error("Project not found");
+    }
+
+    res.json(project);
+  },
+);
+
 // Update Project — any logged-in user can update
 export const updateProject = asyncHandler(
   async (req: AuthRequest, res: Response) => {
