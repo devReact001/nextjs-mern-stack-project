@@ -14,7 +14,7 @@ export default function DashboardLayout({
       <div className="flex h-screen bg-gray-100 dark:bg-black">
 
         {/* Sidebar */}
-        <aside className="w-64 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800">
+        <aside className="w-64 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
           <Sidebar />
         </aside>
 

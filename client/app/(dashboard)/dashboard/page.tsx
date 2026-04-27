@@ -24,7 +24,7 @@ export default function Dashboard() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  const { search, setSearch } = useSearch();
+  const { search, setSearch, triggerRefresh } = useSearch();
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [page, setPage] = useState(1);
@@ -67,30 +67,28 @@ export default function Dashboard() {
     }
   };
 
-  const createProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name) return;
+const createProject = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!name) return;
+  const res = await API.post("/projects", { name, description });
+  setProjects([res.data, ...projects]);
+  setName("");
+  setDescription("");
+  triggerRefresh(); // 👈 add this
+};
 
-    const res = await API.post("/projects", { name, description });
-    setProjects([res.data, ...projects]);
-    setName("");
-    setDescription("");
-  };
+const deleteProject = async (id: string) => {
+  await API.delete(`/projects/${id}`);
+  setProjects(projects.filter((p) => p._id !== id));
+  triggerRefresh(); // 👈 add this
+};
 
-  const deleteProject = async (id: string) => {
-    await API.delete(`/projects/${id}`);
-    setProjects(projects.filter((p) => p._id !== id));
-  };
-
-  const updateProject = async (id: string) => {
-    const res = await API.put(`/projects/${id}`, {
-      name: editName,
-      description: editDescription,
-    });
-
-    setProjects(projects.map((p) => (p._id === id ? res.data : p)));
-    setEditingId(null);
-  };
+const updateProject = async (id: string) => {
+  const res = await API.put(`/projects/${id}`, { name: editName, description: editDescription });
+  setProjects(projects.map((p) => (p._id === id ? res.data : p)));
+  setEditingId(null);
+  triggerRefresh(); // 👈 add this
+};
 
   if (loading || !user) return null;
 

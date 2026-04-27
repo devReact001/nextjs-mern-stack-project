@@ -8,7 +8,7 @@ import { useSearch } from "@/context/SearchContext";
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { search } = useSearch();
+  const { search, refreshKey } = useSearch();
 
   const [projects, setProjects] = useState([]);
 
@@ -23,10 +23,10 @@ export default function Sidebar() {
 
   useEffect(() => {
     fetchProjects();
-  }, [search]);
+  }, [search, refreshKey]);
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col p-4 overflow-y-auto">
 
       {/* 🔥 NAVIGATION */}
       <div className="mb-6">
