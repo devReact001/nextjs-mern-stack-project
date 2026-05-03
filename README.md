@@ -271,21 +271,6 @@ gcloud run deploy mern-frontend \
   --region=asia-south1
 ```
 
----
-
-## 🔮 Future Improvements
-
-- 🔄 Real-time updates using Socket.io
-- 🔍 Advanced search and filtering
-- 👥 Role-based authentication (RBAC)
-- 🌙 Persistent dark mode (localStorage)
-- 📁 File upload functionality
-- 📊 Project analytics dashboard
-- 🔔 Task deadline notifications
-- 🏷️ Task labels and priority levels
-
----
-
 ## 📬 Contact
 
 - 🐙 GitHub: [github.com/devReact001](https://github.com/devReact001)
